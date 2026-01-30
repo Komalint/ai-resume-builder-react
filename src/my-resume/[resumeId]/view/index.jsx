@@ -5,7 +5,7 @@ import ResumePreview from '@/dashboard/resume/components/ResumePreview'
 import React, { useEffect, useState } from 'react'
 import GlobalApi from './../../../../service/GlobalApi'
 import { useParams } from 'react-router-dom'
-import { RWebShare } from "react-web-share";
+
 import { Download, Share2, Sparkles } from 'lucide-react'
 
 const ViewResume = () => {
@@ -24,6 +24,23 @@ const ViewResume = () => {
 
     const Handledownload = () => {
         window.print();
+    }
+
+    // New Native Share Function
+    const HandleShare = () => {
+        const shareData = {
+            title: `${resumeInfo?.firstName} ${resumeInfo?.lastName} Resume`,
+            text: "Hello Everyone, This is my professional resume. Please open the URL to view.",
+            url: window.location.href, // Uses current page URL
+        };
+
+        if (navigator.share) {
+            navigator.share(shareData).catch((err) => console.log('Error sharing', err));
+        } else {
+            // Fallback: Copy to clipboard if Share API is not supported
+            navigator.clipboard.writeText(shareData.url);
+            alert("Link copied to clipboard!");
+        }
     }
 
     return (
@@ -64,21 +81,15 @@ const ViewResume = () => {
                                 Download PDF
                             </Button>
 
-                            <RWebShare
-                                data={{
-                                    text: "Hello Everyone, This is my professional resume. Please open the URL to view.",
-                                    url: import.meta.env.VITE_BASE_URL + "/my-resume/" + resumeId + "/view",
-                                    title: `${resumeInfo?.firstName} ${resumeInfo?.lastName} Resume`,
-                                }}
+                            {/* Standard Button without RWebShare wrapper */}
+                            <Button 
+                                onClick={HandleShare}
+                                variant="outline" 
+                                className="px-10 py-7 text-lg font-bold border-2 border-slate-200 bg-white hover:bg-slate-50 transition-all hover:-translate-y-1 flex gap-3 text-slate-700"
                             >
-                                <Button 
-                                    variant="outline" 
-                                    className="px-10 py-7 text-lg font-bold border-2 border-slate-200 bg-white hover:bg-slate-50 transition-all hover:-translate-y-1 flex gap-3 text-slate-700"
-                                >
-                                    <Share2 className="h-6 w-6" />
-                                    Share Resume
-                                </Button>
-                            </RWebShare>
+                                <Share2 className="h-6 w-6" />
+                                Share Resume
+                            </Button>
                         </div>
                     </div>
                 </div>
