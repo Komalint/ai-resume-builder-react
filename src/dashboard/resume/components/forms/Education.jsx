@@ -26,40 +26,44 @@ const Education = ({ enableNext }) => {
   const { resumeInfo, setResumeInfo } = useContext(ResumeInfoContext)
 
   const handleChange = (event, index) => {
-    const newEntries = educationList.slice();
     const { name, value } = event.target;
-    newEntries[index][name] = value;
+    const newEntries = [...educationList]; // Spread the array
+    newEntries[index] = {
+      ...newEntries[index],
+      [name]: value
+    }; // Clone the specific object being changed
     setEducationList(newEntries);
   }
 
   const AddNewEducation = () => {
-    setEducationList([...educationList, formField]);
+    setEducationList([...educationList, { ...formField }]); // Added { ... } to clone the object
   }
   const RemoveEducation = () => {
     setEducationList(educationList.slice(0, -1));
   }
 
   const onSave = () => {
-    setLoading(true)
-    const data = {
-      data: {
-        education: educationList.map(({id, ...rest}) =>{rest})
-      }
+  setLoading(true);
+  const data = {
+    data: {
+      // FIX: Removed the {} around rest so it actually returns the data
+      education: educationList.map(({ id, ...rest }) => rest) 
     }
+  };
 
-    GlobalApi.UpdateResumeDetail(params.resumeId, data).then(resp => {
-      console.log(resp);
-      setLoading(false);
-      toast('Detail saved successfully!')
-      enableNext(true);
-    }, (error) => {
-      setLoading(false);
-      console.log(error)
-      toast('Server Error, Please try again!')
-    })
-  }
+  GlobalApi.UpdateResumeDetail(params.resumeId, data).then(resp => {
+    setLoading(false);
+    toast('Detail saved successfully!');
+    enableNext(true);
+  }, (error) => {
+    setLoading(false);
+    // This will help you see EXACTLY why Strapi is mad
+    console.error("Strapi Error:", error.response?.data || error.message);
+    toast('Server Error, Please try again!');
+  });
+};
 
-// 1. Load data FROM context INTO local state on mount
+  // 1. Load data FROM context INTO local state on mount
   useEffect(() => {
     if (resumeInfo?.education?.length > 0) {
       setEducationList(resumeInfo.education);
@@ -68,7 +72,7 @@ const Education = ({ enableNext }) => {
 
   // 2. Sync local state TO context ONLY if it contains actual data
   useEffect(() => {
-    if ( educationList.length > 0 &&  educationList[0].institute !== '' ) {
+    if (educationList.length > 0 && educationList[0].institute !== '') {
       setResumeInfo(prev => ({
         ...prev,
         education: educationList
@@ -77,7 +81,7 @@ const Education = ({ enableNext }) => {
     }
   }, [educationList]);
 
-  
+
 
 
 
